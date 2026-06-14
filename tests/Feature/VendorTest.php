@@ -41,7 +41,7 @@ class VendorTest extends TestCase
         // Create Vendor
         $response = $this->postJson('/api/vendors', [
             'name' => 'Indo Jaya Perkasa',
-            'code' => 'VND-001',
+            'code' => 'VND-TEST-001',
             'contact_person' => 'Budi Santoso',
             'phone' => '08123456789',
             'email' => 'budi@indojaya.com',
@@ -52,7 +52,7 @@ class VendorTest extends TestCase
 
         $response->assertStatus(201)
                  ->assertJsonPath('data.name', 'Indo Jaya Perkasa')
-                 ->assertJsonPath('data.code', 'VND-001');
+                 ->assertJsonPath('data.code', 'VND-TEST-001');
 
         $vendorId = $response->json('data.id');
 
@@ -96,7 +96,7 @@ class VendorTest extends TestCase
 
         $response = $this->postJson('/api/vendors', [
             'name' => 'Indo Jaya Perkasa',
-            'code' => 'VND-002',
+            'code' => 'VND-TEST-002',
             'contact_person' => 'Budi Santoso',
             'phone' => '08123456789',
             'address' => 'Jl. Industri No. 12, Bandung',
@@ -130,13 +130,13 @@ class VendorTest extends TestCase
         ]);
 
         // List active only
-        $response = $this->getJson('/api/vendors?is_active=1', ['Cookie' => 'access_token=valid-token']);
+        $response = $this->getJson('/api/vendors?is_active=1&search=Vendor Alpha', ['Cookie' => 'access_token=valid-token']);
         $response->assertStatus(200)
                  ->assertJsonCount(1, 'data')
                  ->assertJsonPath('data.0.name', 'Vendor Alpha');
 
         // List search
-        $response = $this->getJson('/api/vendors?search=Beta', ['Cookie' => 'access_token=valid-token']);
+        $response = $this->getJson('/api/vendors?search=Vendor Beta', ['Cookie' => 'access_token=valid-token']);
         $response->assertStatus(200)
                  ->assertJsonCount(1, 'data')
                  ->assertJsonPath('data.0.name', 'Vendor Beta');

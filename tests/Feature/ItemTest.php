@@ -49,7 +49,7 @@ class ItemTest extends TestCase
 
         // Create Item
         $response = $this->postJson('/api/items', [
-            'code' => 'ITM-0001',
+            'code' => 'ITM-TEST-001',
             'name' => 'Kertas A4 HVS 80g',
             'description' => 'Kertas photocopy',
             'category' => 'ATK',
@@ -59,7 +59,7 @@ class ItemTest extends TestCase
 
         $response->assertStatus(201)
                  ->assertJsonPath('data.name', 'Kertas A4 HVS 80g')
-                 ->assertJsonPath('data.code', 'ITM-0001')
+                 ->assertJsonPath('data.code', 'ITM-TEST-001')
                  ->assertJsonPath('data.default_vendor.name', 'Main Vendor');
 
         $itemId = $response->json('data.id');
@@ -109,19 +109,19 @@ class ItemTest extends TestCase
         ]);
 
         // Category filter
-        $response = $this->getJson('/api/items?category=ATK', ['Cookie' => 'access_token=valid-token']);
+        $response = $this->getJson('/api/items?category=ATK&search=Item Alpha', ['Cookie' => 'access_token=valid-token']);
         $response->assertStatus(200)
                  ->assertJsonCount(1, 'data')
                  ->assertJsonPath('data.0.name', 'Item Alpha');
 
         // Active filter
-        $response = $this->getJson('/api/items?is_active=0', ['Cookie' => 'access_token=valid-token']);
+        $response = $this->getJson('/api/items?is_active=0&search=Item Beta', ['Cookie' => 'access_token=valid-token']);
         $response->assertStatus(200)
                  ->assertJsonCount(1, 'data')
                  ->assertJsonPath('data.0.name', 'Item Beta');
 
         // Search filter
-        $response = $this->getJson('/api/items?search=Alpha', ['Cookie' => 'access_token=valid-token']);
+        $response = $this->getJson('/api/items?search=Item Alpha', ['Cookie' => 'access_token=valid-token']);
         $response->assertStatus(200)
                  ->assertJsonCount(1, 'data')
                  ->assertJsonPath('data.0.name', 'Item Alpha');

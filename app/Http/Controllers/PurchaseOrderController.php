@@ -410,7 +410,12 @@ class PurchaseOrderController extends Controller
             ], 422);
         }
 
+        $validated = $request->validate([
+            'tanggal_pengiriman' => ['required', 'date'],
+        ]);
+
         $po->status = 'received';
+        $po->tanggal_pengiriman = $validated['tanggal_pengiriman'];
         $po->save();
 
         return response()->json([

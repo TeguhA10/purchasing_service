@@ -239,9 +239,12 @@ class PurchaseOrderTest extends TestCase
             'is_active' => true,
         ];
 
-        $response = $this->patchJson("/api/purchase-orders/{$po->id}/receive", [], ['Cookie' => 'access_token=valid-token']);
+        $response = $this->patchJson("/api/purchase-orders/{$po->id}/receive", [
+            'tanggal_pengiriman' => '2026-06-18'
+        ], ['Cookie' => 'access_token=valid-token']);
         $response->assertStatus(200)
-                 ->assertJsonPath('data.status', 'received');
+                 ->assertJsonPath('data.status', 'received')
+                 ->assertJsonPath('data.tanggal_pengiriman', '2026-06-18');
 
         // Verify that database trigger updated the item last_price automatically
         $itemFresh = Item::find($this->activeItem->id);
@@ -282,7 +285,9 @@ class PurchaseOrderTest extends TestCase
         // Staff tries to receive (restricted to admin_cabang/superadmin)
         $po->status = 'approved';
         $po->save();
-        $response = $this->patchJson("/api/purchase-orders/{$po->id}/receive", [], ['Cookie' => 'access_token=valid-token']);
+        $response = $this->patchJson("/api/purchase-orders/{$po->id}/receive", [
+            'tanggal_pengiriman' => '2026-06-18'
+        ], ['Cookie' => 'access_token=valid-token']);
         $response->assertStatus(403);
 
         // Admin Purchasing tries to receive (restricted to admin_cabang/superadmin)
@@ -293,7 +298,9 @@ class PurchaseOrderTest extends TestCase
             'branch_id' => null,
             'is_active' => true,
         ];
-        $response = $this->patchJson("/api/purchase-orders/{$po->id}/receive", [], ['Cookie' => 'access_token=valid-token']);
+        $response = $this->patchJson("/api/purchase-orders/{$po->id}/receive", [
+            'tanggal_pengiriman' => '2026-06-18'
+        ], ['Cookie' => 'access_token=valid-token']);
         $response->assertStatus(403);
     }
 }
