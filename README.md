@@ -1,58 +1,60 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Purchasing Service (Microservice)
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+This microservice handles the purchasing workflow, including vendor directories, items catalog, and purchase order lifecycle management (Draft, Submitted, Approved, Rejected, Received, Cancelled).
 
-## About Laravel
+## Tech Stack
+- **Framework:** Laravel 13
+- **PHP Version:** PHP 8.3
+- **Database:** MySQL 8.4 (`db_purchasing`)
+- **Authentication:** JWT (via middleware that validates tokens issued by the Auth Service)
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## API Endpoints Reference
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+All endpoints are prefixed with `/api` and require a valid JWT cookie.
 
-## Learning Laravel
+### General Authenticated Routes (Any valid user role)
+- **Vendors (Read):**
+  - `GET /api/vendors` - Lists vendors.
+  - `GET /api/vendors/{id}` - Retrieves details of a specific vendor.
+  - `GET /api/vendors/{id}/purchase-history` - Retrieves historical POs for a vendor.
+- **Items (Read):**
+  - `GET /api/items` - Lists catalog items.
+  - `GET /api/items/{id}` - Retrieves specific item details.
+- **Purchase Orders (Basic Actions):**
+  - `POST /api/purchase-orders` - Creates a new draft Purchase Order.
+  - `PUT /api/purchase-orders/{id}/items` - Adds/updates items inside a draft PO.
+  - `PATCH /api/purchase-orders/{id}/submit` - Submits a draft PO for approval.
+  - `PATCH /api/purchase-orders/{id}/cancel` - Cancels a draft or submitted PO.
+  - `GET /api/purchase-orders` - Lists Purchase Orders.
+  - `GET /api/purchase-orders/{id}` - Retrieves details of a specific PO.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### Purchasing Admin Routes (Requires admin_purchasing / superadmin Role)
+- **Vendors (Write):**
+  - `POST /api/vendors` - Register a vendor.
+  - `PUT /api/vendors/{id}` - Update vendor details.
+  - `PATCH /api/vendors/{id}/deactivate` - Deactivates a vendor.
+  - `PATCH /api/vendors/{id}/activate` - Re-activates a vendor.
+- **Items (Write):**
+  - `POST /api/items` - Add a new item to catalog.
+  - `PUT /api/items/{id}` - Update item details.
+  - `PATCH /api/items/{id}/deactivate` - Deactivates an item.
+  - `PATCH /api/items/{id}/activate` - Re-activates an item.
+- **PO Workflow:**
+  - `PATCH /api/purchase-orders/{id}/approve` - Approves a submitted PO.
+  - `PATCH /api/purchase-orders/{id}/reject` - Rejects a submitted PO (requires `rejection_reason`).
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Branch Admin Routes (Requires admin_cabang / superadmin Role)
+- **PO Workflow:**
+  - `PATCH /api/purchase-orders/{id}/receive` - Marks an approved PO as received (updates item's `last_price` automatically).
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+---
 
-## Agentic Development
+## Environment Configuration
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
-
-```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
-```
-
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
-
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+A `.env.example` file is provided. Key custom variables:
+- `AUTH_SERVICE_URL`: Base URL of the Auth Service (for validating user accounts).
+- `EMPLOYEE_SERVICE_URL`: Base URL of the Employee (HRIS) Service (for mapping branch and employee data).
+- `JWT_ACCESS_SECRET`: Secret key for validating JWT tokens (must match Auth Service).
+- `DB_DATABASE`: Defaults to `db_purchasing`.
